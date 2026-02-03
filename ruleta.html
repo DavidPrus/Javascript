@@ -588,7 +588,7 @@
 
     @media (max-width: 520px) {
       body { overflow-y: auto; }
-      .app { height: auto; min-height: 100%; }
+      .app { height: auto; min-height: 100%; display: block; }
       header { padding: 12px 12px 10px; }
       .bar { gap: 8px; padding: 10px 12px; }
       .title b { font-size: 18px; }
@@ -615,12 +615,12 @@
       .betting-options { grid-template-columns: repeat(2, 1fr); }
       .bet-option { font-size: 12px; padding: 8px 10px; }
       main { padding: 6px 12px 20px; }
-      .stage { height: 48vh; max-height: 420px; }
+      .stage { height: 44vh; max-height: 380px; }
       .bet-number { font-size: 12px; }
     }
 
     @media (max-width: 380px) {
-      .stage { height: 44vh; }
+      .stage { height: 40vh; }
     }
   </style>
 </head>
