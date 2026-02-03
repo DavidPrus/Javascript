@@ -589,8 +589,8 @@
     @media (max-width: 520px) {
       body { overflow-y: auto; }
       .app { height: auto; min-height: 100%; display: flex; flex-direction: column; }
-      main { order: 1; }
       .betting-section { order: 2; }
+      main { order: 1; }
       header { padding: 12px 12px 10px; }
       .bar { gap: 8px; padding: 10px 12px; }
       .title b { font-size: 18px; }
@@ -617,7 +617,7 @@
       .betting-options { grid-template-columns: repeat(2, 1fr); }
       .bet-option { font-size: 12px; padding: 8px 10px; }
       main { padding: 6px 12px 20px; }
-      .stage { height: 38vh; max-height: 340px; }
+      .stage { height: 44vh; max-height: 380px; }
       .bet-number { font-size: 12px; }
     }
 
@@ -633,7 +633,7 @@
     <div class="bar">
       <div class="title">
         <b>Ruleta</b>
-        <span>Klikni na hodit kuličku ty géčko</span>
+        <span>KLIKNI NA HODIT KULIČKU, TY GÉČKO</span>
       </div>
 
       <div class="controls">
@@ -1036,7 +1036,6 @@ function bindBetElement(element, betId) {
 
   element.addEventListener("touchstart", (event) => {
     if (running) return;
-    event.preventDefault();
     longPressTriggered = false;
     clearTimeout(longPressTimer);
     longPressTimer = setTimeout(() => {
@@ -1044,18 +1043,17 @@ function bindBetElement(element, betId) {
       ignoreClick = true;
       removeBet(betId);
     }, 450);
-  }, { passive: false });
+  }, { passive: true });
 
   element.addEventListener("touchend", (event) => {
     if (running) return;
-    event.preventDefault();
     clearTimeout(longPressTimer);
     if (!longPressTriggered) {
       ignoreClick = true;
       addBet(betId, element);
     }
     setTimeout(() => { ignoreClick = false; }, 0);
-  }, { passive: false });
+  });
 
   element.addEventListener("touchcancel", () => {
     clearTimeout(longPressTimer);
@@ -1250,12 +1248,6 @@ function evaluateBets(winningNumber) {
 
 function startSpin() {
   unlockAudio();
-  ensureAudio();
-  if (audioCtx && audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-  playSpinStartSound();
-  lastTickTime = 0;
   chosenIndex = Math.floor(Math.random() * pockets.length);
   targetAngle = pocketCenterAngle(chosenIndex);
 
@@ -1483,7 +1475,6 @@ function unlockAudio() {
   if (audioUnlocked) return;
   ensureAudio();
   if (!audioCtx) return;
-  try { audioCtx.resume(); } catch {}
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
   source.buffer = buffer;
@@ -1516,11 +1507,6 @@ function playWinSound() {
 function playLoseSound() {
   playTone(440, 0.18, "sawtooth", 0.07, 0);
   playTone(260, 0.22, "sawtooth", 0.06, 0.16);
-}
-
-function playSpinStartSound() {
-  playTone(520, 0.08, "sine", 0.05, 0);
-  playTone(780, 0.08, "sine", 0.04, 0.06);
 }
 
 function playTick() {
