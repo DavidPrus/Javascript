@@ -589,8 +589,8 @@
     @media (max-width: 520px) {
       body { overflow-y: auto; }
       .app { height: auto; min-height: 100%; display: flex; flex-direction: column; }
-      .betting-section { order: 1; }
-      main { order: 2; }
+      main { order: 1; }
+      .betting-section { order: 2; }
       header { padding: 12px 12px 10px; }
       .bar { gap: 8px; padding: 10px 12px; }
       .title b { font-size: 18px; }
@@ -1036,6 +1036,7 @@ function bindBetElement(element, betId) {
 
   element.addEventListener("touchstart", (event) => {
     if (running) return;
+    event.preventDefault();
     longPressTriggered = false;
     clearTimeout(longPressTimer);
     longPressTimer = setTimeout(() => {
@@ -1043,17 +1044,18 @@ function bindBetElement(element, betId) {
       ignoreClick = true;
       removeBet(betId);
     }, 450);
-  }, { passive: true });
+  }, { passive: false });
 
   element.addEventListener("touchend", (event) => {
     if (running) return;
+    event.preventDefault();
     clearTimeout(longPressTimer);
     if (!longPressTriggered) {
       ignoreClick = true;
       addBet(betId, element);
     }
     setTimeout(() => { ignoreClick = false; }, 0);
-  });
+  }, { passive: false });
 
   element.addEventListener("touchcancel", () => {
     clearTimeout(longPressTimer);
@@ -1248,6 +1250,10 @@ function evaluateBets(winningNumber) {
 
 function startSpin() {
   unlockAudio();
+  ensureAudio();
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
   playSpinStartSound();
   lastTickTime = 0;
   chosenIndex = Math.floor(Math.random() * pockets.length);
@@ -1477,6 +1483,7 @@ function unlockAudio() {
   if (audioUnlocked) return;
   ensureAudio();
   if (!audioCtx) return;
+  try { audioCtx.resume(); } catch {}
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
   source.buffer = buffer;
