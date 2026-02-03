@@ -588,7 +588,9 @@
 
     @media (max-width: 520px) {
       body { overflow-y: auto; }
-      .app { height: auto; min-height: 100%; display: block; }
+      .app { height: auto; min-height: 100%; display: flex; flex-direction: column; }
+      .betting-section { order: 1; }
+      main { order: 2; }
       header { padding: 12px 12px 10px; }
       .bar { gap: 8px; padding: 10px 12px; }
       .title b { font-size: 18px; }
@@ -615,7 +617,7 @@
       .betting-options { grid-template-columns: repeat(2, 1fr); }
       .bet-option { font-size: 12px; padding: 8px 10px; }
       main { padding: 6px 12px 20px; }
-      .stage { height: 44vh; max-height: 380px; }
+      .stage { height: 38vh; max-height: 340px; }
       .bet-number { font-size: 12px; }
     }
 
@@ -1246,6 +1248,8 @@ function evaluateBets(winningNumber) {
 
 function startSpin() {
   unlockAudio();
+  playSpinStartSound();
+  lastTickTime = 0;
   chosenIndex = Math.floor(Math.random() * pockets.length);
   targetAngle = pocketCenterAngle(chosenIndex);
 
@@ -1505,6 +1509,11 @@ function playWinSound() {
 function playLoseSound() {
   playTone(440, 0.18, "sawtooth", 0.07, 0);
   playTone(260, 0.22, "sawtooth", 0.06, 0.16);
+}
+
+function playSpinStartSound() {
+  playTone(520, 0.08, "sine", 0.05, 0);
+  playTone(780, 0.08, "sine", 0.04, 0.06);
 }
 
 function playTick() {
