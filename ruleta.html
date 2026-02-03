@@ -589,8 +589,9 @@
     @media (max-width: 520px) {
       body { overflow-y: auto; }
       .app { height: auto; min-height: 100%; display: flex; flex-direction: column; }
-      .betting-section { order: 2; }
+      header { order: 0; }
       main { order: 1; }
+      .betting-section { order: 2; }
       header { padding: 12px 12px 10px; }
       .bar { gap: 8px; padding: 10px 12px; }
       .title b { font-size: 18px; }
@@ -633,7 +634,7 @@
     <div class="bar">
       <div class="title">
         <b>Ruleta</b>
-        <span>KLIKNI NA HODIT KULIČKU, TY GÉČKO</span>
+        <span>Klikni na hodit kuličku, ty géčko</span>
       </div>
 
       <div class="controls">
@@ -926,15 +927,7 @@ function buildHotspots() {
     el.className = "bet-hotspot " + kind;
     el.style.left = x + "px";
     el.style.top = y + "px";
-    registerBetElement(betId, el);
-    el.addEventListener("click", (event) => {
-      event.preventDefault();
-      addBet(betId, el);
-    });
-    el.addEventListener("contextmenu", (event) => {
-      event.preventDefault();
-      removeBet(betId);
-    });
+    bindBetElement(el, betId);
     layer.appendChild(el);
     if (betCounts[betId]) renderBetAmount(betId);
   }
@@ -1019,8 +1012,10 @@ function bindBetElement(element, betId) {
   let ignoreClick = false;
   let longPressTimer = null;
   let longPressTriggered = false;
+  let lastTouchTime = 0;
 
   element.addEventListener("click", (event) => {
+    if (Date.now() - lastTouchTime < 450) return;
     if (ignoreClick) {
       ignoreClick = false;
       return;
@@ -1036,6 +1031,7 @@ function bindBetElement(element, betId) {
 
   element.addEventListener("touchstart", (event) => {
     if (running) return;
+    event.preventDefault();
     longPressTriggered = false;
     clearTimeout(longPressTimer);
     longPressTimer = setTimeout(() => {
@@ -1043,17 +1039,19 @@ function bindBetElement(element, betId) {
       ignoreClick = true;
       removeBet(betId);
     }, 450);
-  }, { passive: true });
+  }, { passive: false });
 
   element.addEventListener("touchend", (event) => {
     if (running) return;
+    event.preventDefault();
     clearTimeout(longPressTimer);
+    lastTouchTime = Date.now();
     if (!longPressTriggered) {
       ignoreClick = true;
       addBet(betId, element);
     }
-    setTimeout(() => { ignoreClick = false; }, 0);
-  });
+    setTimeout(() => { ignoreClick = false; }, 350);
+  }, { passive: false });
 
   element.addEventListener("touchcancel", () => {
     clearTimeout(longPressTimer);
@@ -1248,6 +1246,12 @@ function evaluateBets(winningNumber) {
 
 function startSpin() {
   unlockAudio();
+  ensureAudio();
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+  playSpinStartSound();
+  lastTickTime = 0;
   chosenIndex = Math.floor(Math.random() * pockets.length);
   targetAngle = pocketCenterAngle(chosenIndex);
 
@@ -1475,6 +1479,7 @@ function unlockAudio() {
   if (audioUnlocked) return;
   ensureAudio();
   if (!audioCtx) return;
+  try { audioCtx.resume(); } catch {}
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
   source.buffer = buffer;
@@ -1507,6 +1512,11 @@ function playWinSound() {
 function playLoseSound() {
   playTone(440, 0.18, "sawtooth", 0.07, 0);
   playTone(260, 0.22, "sawtooth", 0.06, 0.16);
+}
+
+function playSpinStartSound() {
+  playTone(520, 0.08, "sine", 0.05, 0);
+  playTone(780, 0.08, "sine", 0.04, 0.06);
 }
 
 function playTick() {
